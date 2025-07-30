@@ -8,25 +8,30 @@ datasource db {
 }
 
 model User {
-  id        Int     @id @default(autoincrement())
-  email     String  @unique
+  id        Int      @id @default(autoincrement())
+  username  String   @unique
   password  String
   name      String
-  role      Role    @default(USER)
-  tasks     Task[]
+  role      Role     @default(USER)
   createdAt DateTime @default(now())
+
+  // Relations
+  tasks Task[] @relation("UserTasks")
 }
 
 model Task {
-  id          Int       @id @default(autoincrement())
-  name        String
+  id          Int        @id @default(autoincrement())
+  title        String
   description String
   type        TaskType
   status      TaskStatus @default(PENDING)
+  ownerId     Int
   createdAt   DateTime   @default(now())
-  endDate     DateTime
-  assignedTo  User?      @relation(fields: [assignedToId], references: [id])
-  assignedToId Int?
+  updatedAt   DateTime   @updatedAt
+  deletedAt   DateTime?
+
+  // Relations
+  owner User @relation("UserTasks", fields: [ownerId], references: [id])
 }
 
 enum Role {
