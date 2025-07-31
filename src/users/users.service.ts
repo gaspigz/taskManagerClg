@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from '@prisma/client';
@@ -43,10 +43,14 @@ export class UsersService {
     return this.prisma.user.findMany().then(users => users.map(this.toUserResponseDto));
   }
 
-  findOne(id: number) : Promise<ResponseUserDto | null> {
-    return this.prisma.user.findUnique({
+  async findOne(id: number) : Promise<ResponseUserDto | null> {
+    const user = await this.prisma.user.findUnique({
       where: { id },
-    }).then(user => user ? this.toUserResponseDto(user) : null);
+    });
+    if(!user) {
+      throw new NotFoundException(`User with ID ${id} not found`);
+    }
+    return this.toUserResponseDto(user);
   }
 
   findByCredentials(loginDto: LoginDto): Promise<ResponseUserDto | null> {
@@ -56,7 +60,8 @@ export class UsersService {
       if (user && bcrypt.compareSync(loginDto.password, user.password)) {
         return this.toUserResponseDto(user);
       }
-      return null;
+
+      throw new NotFoundException('Invalid credentials');
     });
   }
 
