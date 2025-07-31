@@ -3,35 +3,78 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from '@prisma/client';
 import { PrismaService } from '../prisma.service';
+import { ConflictException, InternalServerErrorException } from '@nestjs/common';
+import * as bcrypt from 'bcrypt';
+import { LoginDto } from 'src/auth/dto/login.dto';
+import { ResponseUserDto } from './dto/response-user.dto';
 
 @Injectable()
 export class UsersService {
 
   constructor(private prisma: PrismaService) {}
 
-  create(createUserDto: CreateUserDto) : Promise<User> {
-    console.log("Creating user with data:", createUserDto);
-    
-    return this.prisma.user.create({
-      data: createUserDto,
-    });
+  toUserResponseDto(user: User): ResponseUserDto {
+    const { password, ...rest } = user;
+    return rest;
   }
 
-  findAll() : Promise<User[]> {
-    return this.prisma.user.findMany();
+  async create(createUserDto: CreateUserDto): Promise<ResponseUserDto> {  
+    try {
+      const saltRounds = parseInt(process.env.BCRYPT_SALT_ROUNDS ?? '10');
+      const hashedPassword = await bcrypt.hash(createUserDto.password, saltRounds);
+      const user = await this.prisma.user.create({
+        data: { ...createUserDto, password: hashedPassword },
+      });
+      return this.toUserResponseDto(user);
+    } catch (error) {
+      if (
+        error.code === 'P2002' && // Prisma: Unique constraint failed
+        error.meta?.target?.includes('username')
+      ) {
+        throw new ConflictException('Username already exists');
+      }
+
+      console.error('Error creating user:', error);
+      throw new InternalServerErrorException('Unexpected error');
+    }
   }
 
-  findOne(id: number) : Promise<User | null> {
+  findAll() : Promise<ResponseUserDto[]> {
+    return this.prisma.user.findMany().then(users => users.map(this.toUserResponseDto));
+  }
+
+  findOne(id: number) : Promise<ResponseUserDto | null> {
     return this.prisma.user.findUnique({
       where: { id },
+    }).then(user => user ? this.toUserResponseDto(user) : null);
+  }
+
+  findByCredentials(loginDto: LoginDto): Promise<ResponseUserDto | null> {
+    return this.prisma.user.findUnique({
+      where: { username: loginDto.username },
+    }).then(user => {
+      if (user && bcrypt.compareSync(loginDto.password, user.password)) {
+        return this.toUserResponseDto(user);
+      }
+      return null;
     });
   }
 
   update(id: number, updateUserDto: UpdateUserDto) : Promise<Boolean>{
-    return this.prisma.user.update({
-      where: { id },
-      data: updateUserDto,
-    }).then(() => true).catch(() => false);
+    if (updateUserDto.password) {
+      const saltRounds = parseInt(process.env.BCRYPT_SALT_ROUNDS ?? '10');
+      const newHashedPassword = bcrypt.hashSync(updateUserDto.password, saltRounds);
+      return this.prisma.user.update({
+        where: { id },
+        data: {...updateUserDto, password: newHashedPassword},
+      }).then(() => true).catch(() => false);
+    }
+    else{
+      return this.prisma.user.update({
+        where: { id },
+        data: updateUserDto,
+      }).then(() => true).catch(() => false);
+    }
   }
 
   remove(id: number) : Promise <Boolean> {
