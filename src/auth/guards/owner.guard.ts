@@ -1,19 +1,14 @@
 // src/auth/guards/owner.guard.ts
 import { CanActivate, ExecutionContext, Injectable, ForbiddenException } from '@nestjs/common';
 import { Request } from 'express';
-
-interface JwtUser {
-  userId: number;
-  username: string;
-  role: string;
-}
+import { JwtUserInterface } from '../interfaces/jwt-user.interface';
 
 @Injectable()
 export class OwnerGuard implements CanActivate {
   canActivate(context: ExecutionContext): boolean {
     const request = context.switchToHttp().getRequest<Request>();
 
-    const user = request.user as JwtUser; // inyectado por JwtStrategy
+    const user = request.user as JwtUserInterface; // inyectado por JwtStrategy
     const paramId = parseInt(request.params.id, 10);
     
     if (!user || isNaN(paramId)) {

@@ -1,4 +1,5 @@
-import { IsString, Length, IsNumber } from 'class-validator';
+import { IsString, Length, IsNumber, IsOptional, IsEnum } from 'class-validator';
+import { TaskStatus, TaskType } from '@prisma/client';
 export class CreateTaskDto {
     @IsString()
     @Length(4, 100)
@@ -9,8 +10,12 @@ export class CreateTaskDto {
     description: string;
 
     @IsNumber()
+    @IsOptional()
     ownerId?: number;
 
-    type: 'URGENT' | 'MEDIUM' | 'LOW';
-    status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'ARCHIVED';
+    @IsEnum(TaskType)
+    type: TaskType;
+
+    @IsEnum(TaskStatus)
+    status: TaskStatus;
 }
