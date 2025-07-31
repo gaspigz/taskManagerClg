@@ -22,6 +22,9 @@ export class UsersService {
     try {
       const saltRounds = parseInt(process.env.BCRYPT_SALT_ROUNDS ?? '10');
       const hashedPassword = await bcrypt.hash(createUserDto.password, saltRounds);
+      if (!hashedPassword) {
+        throw new InternalServerErrorException('Error hashing password');
+      }
       const user = await this.prisma.user.create({
         data: { ...createUserDto, password: hashedPassword },
       });
