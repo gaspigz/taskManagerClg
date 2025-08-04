@@ -1,19 +1,17 @@
-import { Controller, Post, Request, Body, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiBody } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
-import { CreateUserDto } from './dto/create-user.dto';
-import { LoginDto } from './dto/login.dto'; 
+import { LoginDto } from './dto/login.dto';
 
+@ApiTags('Auth')
 @Controller('')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('login')
+  @ApiOperation({ summary: 'Login y generación de JWT' })
+  @ApiBody({ type: LoginDto })
   async login(@Body() loginDto: LoginDto) {
     return this.authService.login(loginDto);
   }
-  
-  /*@Post('logout')
-  async logout(@Request() req) {
-    return this.authService.logout(req);
-  }*/
 }

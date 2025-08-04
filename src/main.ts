@@ -8,7 +8,7 @@ async function bootstrap() {
 
    const config = new DocumentBuilder()
     .setTitle('Task Manager API')
-    .setDescription('Task Manager API for the The Blue Box challenge.')
+    .setDescription('Task Manager API for technical interview.')
     .setVersion('1.0')
     .addTag('tasks')
     .build();

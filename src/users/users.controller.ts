@@ -1,65 +1,47 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, HttpException, UseGuards } from '@nestjs/common';
-import { UsersService } from './users.service';
+import { ApiBearerAuth, ApiTags, ApiOperation, ApiBody, ApiParam } from '@nestjs/swagger';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
-import { OwnerGuard } from 'src/auth/guards/owner.guard';
-import { RolesGuard } from 'src/auth/guards/roles.guard';
-import { Roles } from 'src/auth/roles.decorator';
+import { UsersService } from './users.service';
 
+@ApiTags('Users')
+@ApiBearerAuth()
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('ADMIN')
   @Post()
+  @ApiOperation({ summary: 'Crear nuevo usuario (ADMIN)' })
+  @ApiBody({ type: CreateUserDto })
   create(@Body() createUserDto: CreateUserDto) {
-    console.log("Creating user with data:", createUserDto);
     return this.usersService.create(createUserDto);
   }
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('ADMIN')
   @Get()
+  @ApiOperation({ summary: 'Listar todos los usuarios (ADMIN)' })
   findAll() {
-    console.log("Fetching all users.");
     return this.usersService.findAll();
   }
 
-  @UseGuards(JwtAuthGuard, OwnerGuard)
   @Get(':id')
+  @ApiOperation({ summary: 'Obtener un usuario por ID (Propietario)' })
+  @ApiParam({ name: 'id', type: 'string' })
   findOne(@Param('id') id: string) {
     return this.usersService.findOne(+id);
   }
 
-  @UseGuards(JwtAuthGuard, OwnerGuard)
   @Patch(':id')
-  async update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    if (await this.usersService.update(+id, updateUserDto)) {
-      return { message: 'User updated successfully' };
-    } else {
-      return { message: 'User not found' };
-    }
+  @ApiOperation({ summary: 'Actualizar usuario (Propietario)' })
+  @ApiParam({ name: 'id', type: 'string' })
+  @ApiBody({ type: UpdateUserDto })
+  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
+    return this.usersService.update(+id, updateUserDto);
   }
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('ADMIN')
   @Delete(':id')
-  async remove(@Param('id') id: string) {
-    console.log(`Removing user with ID: ${id}`);
-    if (isNaN(+id)) {
-      throw new HttpException('Invalid ID format', 400);
-    }
-    console.log(`Calling service to remove user with ID: ${id}`);
-    if (+id <= 0) {
-      throw new HttpException('ID must be a positive integer', 400);
-    }
-
-    if (await this.usersService.remove(+id)) {
-      return { message: 'User removed successfully' };
-    } else {
-      return { message: 'User not found' };
-    }
+  @ApiOperation({ summary: 'Eliminar usuario (ADMIN)' })
+  @ApiParam({ name: 'id', type: 'string' })
+  remove(@Param('id') id: string) {
+    return this.usersService.remove(+id);
   }
 }
