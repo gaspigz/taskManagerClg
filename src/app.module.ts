@@ -4,9 +4,10 @@ import { AppService } from './app.service';
 import { UsersModule } from './users/users.module';
 import { TasksModule } from './tasks/tasks.module';
 import { AuthModule } from './auth/auth.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
-  imports: [UsersModule, TasksModule, AuthModule],
+  imports: [ScheduleModule.forRoot(), UsersModule, TasksModule, AuthModule],
   controllers: [AppController],
   providers: [AppService],
 })
