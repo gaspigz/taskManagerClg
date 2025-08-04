@@ -4,10 +4,18 @@ import { PrismaService } from '../prisma.service';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { TaskStatus, TaskType } from '@prisma/client';
 import { JwtService } from '@nestjs/jwt/dist/jwt.service';
+import { NotificationsGateway } from '../notifications/notifications.gateway';
 
 const mockJwtService = {
   sign: jest.fn(() => 'fake-token'),
   verify: jest.fn(),
+};
+
+const mockNotificationsGateway = {
+  notifyTaskCreated: jest.fn(),
+  notifyTaskUpdated: jest.fn(),
+  notifyTaskDeleted: jest.fn(),
+  notifyTaskArchived: jest.fn(),
 };
 
 const mockPrismaService = {
@@ -33,6 +41,7 @@ describe('TasksService', () => {
         TasksService,
         { provide: PrismaService, useValue: mockPrismaService },
         { provide: JwtService, useValue: mockJwtService },
+        { provide: NotificationsGateway, useValue: mockNotificationsGateway },
       ],
     }).compile();
 
