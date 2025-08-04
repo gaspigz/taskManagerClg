@@ -1,11 +1,11 @@
-# 🧩 Task Management API
+#  Task Management API
 
 API RESTful para gestión de tareas con autenticación JWT y control de roles (admin / user).  
 Desarrollada con NestJS, Prisma y PostgreSQL, lista para deploy y testing vía Docker.
 
 ---
 
-## 🚀 Tecnologías
+##  Tecnologías
 
 - NestJS - Framework para Node.js
 - Prisma - ORM para PostgreSQL
@@ -15,12 +15,12 @@ Desarrollada con NestJS, Prisma y PostgreSQL, lista para deploy y testing vía D
 
 ---
 
-## 🐳 Inicialización con Docker
+##  Inicialización con Docker
 
 > Requisitos previos:
 > - Docker y Docker Compose instalados
 
-### 🔁 Paso a paso
+###  Paso a paso
 
 1. Clonar el repositorio  
    git clone <repo_url>
@@ -40,7 +40,7 @@ Desarrollada con NestJS, Prisma y PostgreSQL, lista para deploy y testing vía D
 
 ---
 
-## 🛠️ Prisma
+##  Prisma
 
 
 1. Generar cliente Prisma  
@@ -49,10 +49,13 @@ Desarrollada con NestJS, Prisma y PostgreSQL, lista para deploy y testing vía D
 2. Aplicar migraciones  
    npx prisma migrate dev --name init
 
+3. Aplicar seed
+   npm run prisma:seed
+
 
 ---
 
-## 🚦 Correr la aplicación
+##  Correr la aplicación
 
 npm run start:dev
 
@@ -61,36 +64,29 @@ http://localhost:3000
 
 ---
 
-## 🔐 Credenciales de prueba
+##  Credenciales de prueba
 
-👤 Admin por defecto (para testing):
+ Admin por defecto (para testing):
 
 {
   "username": "ADMIN",
   "password": "ADMIN"
 }
 
-⚠️ Esta cuenta debe crearse manualmente con un seed o registrarla vía /users si tenés permisos.
+⚠ Esta cuenta debe crearse manualmente con un seed o registrarla vía /users si tenés permisos.
 
 ---
 
-## 📚 Consultar las rutas
+##  Consultar las rutas
 
 La documentación completa de endpoints está disponible vía Swagger:
 
 Swagger UI:  
 http://localhost:3000/api
 
-Incluye:
-- Login (/login)
-- CRUD de usuarios (/users)
-- CRUD de tareas (/tasks)
-- Filtros por nombre, tipo y paginación
-- Control de roles (solo ADMIN puede eliminar o archivar)
-
 ---
 
-## 🧪 Testing
+##  Testing
 
 npm run test
 
@@ -98,7 +94,7 @@ npm run test
 
 ---
 
-## 📦 Scripts útiles
+##  Scripts útiles
 
 Ver migraciones:  
 npx prisma migrate status
@@ -108,7 +104,7 @@ npx ts-node prisma/seed.ts
 
 ---
 
-## 🧰 Deploy
+##  Deploy
 
 Esta API está disponible para consultar en la siguiente url:
 https://taskmanagerclg.onrender.com/api
