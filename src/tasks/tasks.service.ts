@@ -1,4 +1,4 @@
-import { HttpException, Injectable, NotFoundException } from '@nestjs/common';
+import { HttpException, Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { PrismaService } from '../prisma.service';
@@ -40,18 +40,71 @@ export class TasksService {
     return task;
   }
 
-  findAll(user: any) {
-    const userId = user.userId;
-    if (!userId) {
-      throw new NotFoundException('User not found');
+  async findAll(user: any, query: any) {
+    const {
+      title,
+      type,
+      sortBy = 'createdAt',
+      order = 'desc',
+      page = '1',
+    } = query;
+
+    const where: any = {};
+
+    if (user.role !== 'ADMIN') {
+      where.ownerId = user.userId;
     }
-    if(user.role === 'ADMIN') {
-      return this.prisma.task.findMany();
+
+    if (title) {
+      where.title = {
+        contains: title,
+        mode: 'insensitive',
+      };
     }
-    return this.prisma.task.findMany({
-      where: { ownerId: userId },
-    });
+
+    if (type) {
+      if (!['URGENT', 'MEDIUM', 'LOW'].includes(type.toUpperCase())) {
+        throw new BadRequestException('Invalid task type');
+      }
+      where.type = type.toUpperCase();
+    }
+
+    const validSortFields = ['createdAt', 'updatedAt', 'title'];
+    const sortField = validSortFields.includes(sortBy) ? sortBy : 'createdAt';
+    const sortDirection = order.toLowerCase() === 'asc' ? 'asc' : 'desc';
+
+    const numericPage = parseInt(page);
+    const take = 10;
+    const skip = (numericPage - 1) * take;
+
+    if (isNaN(numericPage) || numericPage <= 0) {
+      throw new BadRequestException('Invalid page value');
+    }
+
+    const [tasks, total] = await Promise.all([
+      this.prisma.task.findMany({
+        where,
+        orderBy: {
+          [sortField]: sortDirection,
+        },
+        skip,
+        take,
+      }),
+      this.prisma.task.count({ where }),
+    ]);
+
+    return {
+      data: tasks,
+      meta: {
+        total,
+        page: numericPage,
+        pageSize: take,
+        totalPages: Math.ceil(total / take),
+      },
+    };
   }
+
+
 
   getTasksFromUser(userId: number) {
     if (isNaN(userId) || userId <= 0) {

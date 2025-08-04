@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Post, Body, Query, Patch, Param, Delete, UseGuards, Request } from '@nestjs/common';
 import { TasksService } from './tasks.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
@@ -18,10 +18,10 @@ export class TasksController {
   }
 
   @Get()
-  findAll(@Request() req) {
+  findAll(@Request() req, @Query() query: any) {
     console.log("Fetching all tasks for user:", req.user);
 
-    return this.tasksService.findAll(req.user);
+    return this.tasksService.findAll(req.user, query);
   }
 
   @UseGuards(TaskOwnerGuard)

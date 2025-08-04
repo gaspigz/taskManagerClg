@@ -4,7 +4,6 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { OwnerGuard } from 'src/auth/guards/owner.guard';
-import { Role } from '@prisma/client';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { Roles } from 'src/auth/roles.decorator';
 
@@ -20,6 +19,8 @@ export class UsersController {
     return this.usersService.create(createUserDto);
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
   @Get()
   findAll() {
     console.log("Fetching all users.");
@@ -32,6 +33,7 @@ export class UsersController {
     return this.usersService.findOne(+id);
   }
 
+  @UseGuards(JwtAuthGuard, OwnerGuard)
   @Patch(':id')
   async update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
     if (await this.usersService.update(+id, updateUserDto)) {
@@ -41,6 +43,8 @@ export class UsersController {
     }
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
   @Delete(':id')
   async remove(@Param('id') id: string) {
     console.log(`Removing user with ID: ${id}`);
