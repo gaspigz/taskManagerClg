@@ -114,4 +114,9 @@ Esta API está disponible para consultar en la siguiente url:
 https://taskmanagerclg.onrender.com/api
 Está montado en Render con un plan gratuito, por lo que puede caerse por inactividad, por lo tanto la primer consulta puede tardar al rededor de un minuto.
 
+## Sockets
+
+Para conectarte al servidor y escuchar los sockets (no disponible con el deploy, solo en localhost) se debe ejecutar:
+npx ts-node ./socketClient/client.ts
+
 ---

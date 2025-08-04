@@ -2,11 +2,11 @@ import { HttpException, Injectable, NotFoundException, BadRequestException } fro
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { PrismaService } from '../prisma.service';
-import { JwtService } from '@nestjs/jwt';
+import { NotificationsGateway } from 'src/notifications/notifications.gateway';
 
 @Injectable()
 export class TasksService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService, private readonly notificationsGateway: NotificationsGateway) {}
 
   async create(createTaskDto: CreateTaskDto, user: any) {
     if (createTaskDto.ownerId && createTaskDto.ownerId !== user.userId && user.role !== 'ADMIN') {
@@ -24,7 +24,11 @@ export class TasksService {
       throw new NotFoundException(`User with ID ${ownerId} not found`);
     }
 
-    return this.prisma.task.create({ data: { ...createTaskDto, ownerId } });
+    const task = this.prisma.task.create({ data: { ...createTaskDto, ownerId } });
+
+    this.notificationsGateway.notifyTaskCreated(task);
+
+    return task;
   }
 
   async findAll(user: any, query: any) {
@@ -83,6 +87,7 @@ export class TasksService {
   }
 
   async update(id: number, updateTaskDto: UpdateTaskDto) {
+    
     const task = await this.prisma.task.findUnique({ where: { id } });
     if (!task) throw new NotFoundException(`Task with ID ${id} not found`);
 
@@ -90,29 +95,48 @@ export class TasksService {
       throw new HttpException('Cannot update task to status ARCHIVED', 401);
     }
 
-    return this.prisma.task.update({
+    if(updateTaskDto.ownerId){
+      const owner = await this.prisma.user.findUnique({ where: { id: updateTaskDto.ownerId } });
+      if (!owner) {
+        throw new NotFoundException(`User with ID ${updateTaskDto.ownerId} not found`);
+      }
+    }
+
+    const updatedTask = await this.prisma.task.update({
       where: { id },
       data: updateTaskDto,
     });
+
+    this.notificationsGateway.notifyTaskUpdated(updatedTask);
+
+    return updatedTask;
   }
 
   async archive(id: number) {
     const task = await this.prisma.task.findUnique({ where: { id } });
     if (!task) throw new NotFoundException(`Task with ID ${id} not found`);
 
-    return this.prisma.task.update({
+    const archivedTask = await this.prisma.task.update({
       where: { id },
       data: { status: 'ARCHIVED' },
     });
+
+    this.notificationsGateway.notifyTaskUpdated(archivedTask);
+
+    return archivedTask;
   }
 
   async remove(id: number) {
     const task = await this.prisma.task.findUnique({ where: { id } });
     if (!task) throw new NotFoundException(`Task with ID ${id} not found`);
-    
-    return this.prisma.task.update({
+
+    const deletedTask = await this.prisma.task.update({
       where: { id },
       data: { deletedAt: new Date() }
     });
+
+    this.notificationsGateway.notifyTaskDeleted(id);
+
+    return deletedTask;
   }
 }
