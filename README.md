@@ -108,8 +108,10 @@ npx ts-node prisma/seed.ts
 
 ---
 
-## 🧰 Contacto / soporte
+## 🧰 Deploy
 
-Si encontrás errores o querés sugerencias, ¡bienvenidas!
+Esta API está disponible para consultar en la siguiente url:
+https://taskmanagerclg.onrender.com/api
+Está montado en Render con un plan gratuito, por lo que puede caerse por inactividad, por lo tanto la primer consulta puede tardar al rededor de un minuto.
 
 ---
